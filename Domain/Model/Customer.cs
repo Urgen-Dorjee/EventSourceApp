@@ -42,6 +42,31 @@ public class Customer : AggregateRoot
         }
     }
 
-    public record CustomerCreatedEvent(Guid Id, string Name) : INotification;
-    public record CustomerUpdatedEvent(Guid Id, string Name) : INotification;
+    //public record CustomerCreatedEvent(Guid Id, string Name) : INotification;
+    //public record CustomerUpdatedEvent(Guid Id, string Name) : INotification;
+
+    public record CustomerCreatedEvent : INotification
+    {
+        public Guid Id { get; init; }
+        public string Name { get; init; }
+
+        public CustomerCreatedEvent(Guid id, string name)
+        {
+            Id = id;
+            Name = name;
+        }
+    }
+
+    public record CustomerUpdatedEvent : INotification
+    {
+        public Guid Id { get; init; }
+        public string Name { get; init; }
+
+        public CustomerUpdatedEvent(Guid id, string name)
+        {
+            Id = id;
+            Name = name;
+        }
+    }
+
 }
