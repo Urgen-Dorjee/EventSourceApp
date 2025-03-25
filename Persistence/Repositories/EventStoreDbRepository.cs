@@ -1,44 +1,56 @@
 ﻿using Domain.Contacts;
 using EventStore.Client;
 using MediatR;
-using System.Text.Json;
 using System.Text;
+using System.Text.Json;
 
 public class EventStoreDbRepository : IEventStore
 {
-    private readonly EventStoreClient _client;
+    private readonly EventStoreClient _eventStoreClient;
 
-    public EventStoreDbRepository(EventStoreClient client)
+    public EventStoreDbRepository(EventStoreClient eventStoreClient)
     {
-        _client = client;
+        _eventStoreClient = eventStoreClient;
+    }
+
+    public async Task<T?> LoadAsync<T>(Guid aggregateId) where T : AggregateRoot, new()
+    {
+        if (aggregateId == Guid.Empty)
+            throw new ArgumentException(nameof(aggregateId));
+
+        var streamName = GetStreamName<T>(aggregateId);
+        var aggregate = new T();
+
+        var readStream = _eventStoreClient.ReadStreamAsync(Direction.Forwards, streamName, StreamPosition.Start);
+
+        if (await readStream.ReadState == ReadState.StreamNotFound)
+            return null;
+
+        var events = await (from @event in readStream
+                            let json = Encoding.UTF8.GetString(@event.Event.Data.ToArray())
+                            let type = Type.GetType(Encoding.UTF8.GetString(@event.Event.Metadata.ToArray())!)
+                            select JsonSerializer.Deserialize(json, type!) as INotification
+                            into deserialized
+                            where deserialized != null
+                            select deserialized).ToListAsync();
+
+        aggregate.LoadFromHistory(events!);
+        return aggregate;
     }
 
     public async Task SaveAsync(Guid aggregateId, IEnumerable<INotification> events, CancellationToken cancellationToken)
     {
-        var eventStream = $"customer-{aggregateId}";
+        var streamName = $"Customer-{aggregateId}";
 
-        var eventData = events.Select(@event =>
-        {
-            var json = JsonSerializer.SerializeToUtf8Bytes((object)@event);
-            return new EventData(
-                Uuid.NewUuid(),
-                @event.GetType().Name,
-                json,
-                Encoding.UTF8.GetBytes(@event.GetType().AssemblyQualifiedName!)
-            );
-        });
+        var eventData = events.Select(@event => new EventData(
+            Uuid.NewUuid(),
+            @event.GetType().Name,
+            JsonSerializer.SerializeToUtf8Bytes((object)@event),
+            Encoding.UTF8.GetBytes(@event.GetType().AssemblyQualifiedName!)
+        ));
 
-        try
-        {
-            await _client.AppendToStreamAsync(eventStream, StreamState.Any, eventData, cancellationToken: cancellationToken);
-        }
-        catch (Grpc.Core.RpcException ex)
-        {
-            throw new InvalidOperationException("Failed to connect to EventStoreDB. Is it running on localhost:2113?", ex);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Unexpected error while writing to EventStore stream '{eventStream}'.", ex);
-        }
+        await _eventStoreClient.AppendToStreamAsync(streamName, StreamState.Any, eventData, cancellationToken: cancellationToken);
     }
+
+    private static string GetStreamName<T>(Guid id) => $"{typeof(T).Name}-{id}";
 }

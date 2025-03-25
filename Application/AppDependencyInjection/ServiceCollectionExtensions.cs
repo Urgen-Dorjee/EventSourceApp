@@ -27,9 +27,9 @@ public static class ServiceCollectionExtensions
     {
         services.AddAutoMapper(typeof(CustomerMappingProfile));
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CreateCustomerCommandHandler).Assembly));
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(UpdateCustomerCommandHandler).Assembly));
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetAllCustomersQueryHandler).Assembly));
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetCustomerByIdQueryHandler).Assembly));
+        //services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(UpdateCustomerCommandHandler).Assembly));
+        //services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetAllCustomersQueryHandler).Assembly));
+        //services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetCustomerByIdQueryHandler).Assembly));
         //services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         return services;
     }

@@ -1,8 +1,9 @@
 ﻿using MediatR;
+using  Domain.Events;
 
 namespace Domain.Model;
 
-public class Customer : AggregateRoot
+public partial class Customer : AggregateRoot
 {
     public string Name { get; private set; }
 
@@ -39,33 +40,6 @@ public class Customer : AggregateRoot
             case CustomerUpdatedEvent e:
                 Name = e.Name;
                 break;
-        }
-    }
-
-    //public record CustomerCreatedEvent(Guid Id, string Name) : INotification;
-    //public record CustomerUpdatedEvent(Guid Id, string Name) : INotification;
-
-    public record CustomerCreatedEvent : INotification
-    {
-        public Guid Id { get; init; }
-        public string Name { get; init; }
-
-        public CustomerCreatedEvent(Guid id, string name)
-        {
-            Id = id;
-            Name = name;
-        }
-    }
-
-    public record CustomerUpdatedEvent : INotification
-    {
-        public Guid Id { get; init; }
-        public string Name { get; init; }
-
-        public CustomerUpdatedEvent(Guid id, string name)
-        {
-            Id = id;
-            Name = name;
         }
     }
 

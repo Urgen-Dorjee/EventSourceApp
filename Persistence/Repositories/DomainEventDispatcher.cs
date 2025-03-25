@@ -1,5 +1,4 @@
 ﻿using Domain.Contacts;
-using Domain;
 using MediatR;
 
 public class DomainEventDispatcher : IDomainEventDispatcher
@@ -18,6 +17,7 @@ public class DomainEventDispatcher : IDomainEventDispatcher
         if (aggregateRoot == null) throw new ArgumentNullException(nameof(aggregateRoot));
 
         var domainEvents = aggregateRoot.DomainEvents.ToList();
+
         aggregateRoot.ClearDomainEvents();
 
         // Save to EventStore

@@ -1,6 +1,8 @@
-﻿using Domain.Model;
+﻿using Domain.Events;
+using Domain.Model;
 using FluentAssertions;
 using static Domain.Model.Customer;
+
 
 namespace DomainTest.DomainTest;
 
